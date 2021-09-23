@@ -11,6 +11,11 @@ const router = express.Router();
 
 router.use(adminController.isAdmin);
 
-router.get("/", userController.getAllUsers);
+router.get("/all", userController.getAllUsers);
+router.get("/user/:uid", userController.getUserHandler);
+router.patch("/", userController.updateUserStatus);
+
+router.get("/search", userController.searchUsers);
+router.get("/active", userController.getAllActiveUsers);
 
 module.exports = router;

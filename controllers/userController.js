@@ -2,7 +2,7 @@ const User = require("../models/User");
 const catchAsync = require("../utils/catchAsync");
 
 exports.getUserHandler = catchAsync(async (req, res) => {
-  const uid = req.body.uid;
+  const { uid } = req.params;
 
   const result = await User.findOne({ uid });
 
@@ -17,9 +17,9 @@ exports.getUserHandler = catchAsync(async (req, res) => {
 
 exports.updateUserStatus = catchAsync(async (req, res) => {
   const { uid, active } = req.body;
-
   const result = await User.findOneAndUpdate({ uid }, { $set: { active } });
-  if (result.ok) {
+
+  if (result) {
     res.json({ ok: true });
     res.status(200).end();
   } else {
@@ -42,7 +42,7 @@ exports.searchUsers = catchAsync(async (req, res) => {
   const result = await User.find(
     { $text: { $search: search } },
     { projection: { password: 0, _id: 0 } }
-  ).toArray();
+  );
 
   res.json({ users: result });
   res.status(200).end();
@@ -56,6 +56,7 @@ exports.getAllUsers = catchAsync(async (req, res) => {
 
 exports.getAllActiveUsers = catchAsync(async (req, res) => {
   const params = req.query.uids;
+  console.log(params);
   let uids;
   if (!Array.isArray(params)) {
     uids = [params];
@@ -66,7 +67,7 @@ exports.getAllActiveUsers = catchAsync(async (req, res) => {
   const result = await User.find(
     { uid: { $in: uids } },
     { projection: { password: 0, _id: 0 } }
-  ).toArray();
+  );
   res.json({ users: result });
 
   res.status(200).end();

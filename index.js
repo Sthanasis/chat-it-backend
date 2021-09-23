@@ -3,25 +3,27 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 const compression = require("compression");
-const bodyParser = require("body-parser");
+const { json } = require("body-parser");
+
 const io = require("./sockets");
+
 const userRouter = require("./api/userRoutes");
 const adminRouter = require("./api/adminRoutes");
+const chatRouter = require("./api/chatRoutes");
 
 app.use(cors());
 app.use(compression());
-app.use(bodyParser.json());
+app.use(json());
 
 app.use("/api", adminRouter);
 app.use("/api/users", userRouter);
+app.use("/api/chats", chatRouter);
 
 dotenv.config({
   path: "./.env",
 });
 
 const port = process.env.PORT || 3000;
-
-app.get("/", (req, res) => {});
 
 process.on("uncaughtException", (err) => {
   console.log(err.name, err.message);
@@ -41,6 +43,6 @@ mongoose
 
 app.listen(port, () => {
   console.log(
-    `>Running on http://localhost:${port} with environment ${process.env.NODE_ENV}`
+    `> Running on http://localhost:${port} with environment ${process.env.NODE_ENV}`
   );
 });
