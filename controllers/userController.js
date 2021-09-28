@@ -72,3 +72,42 @@ exports.getAllActiveUsers = catchAsync(async (req, res) => {
 
   res.status(200).end();
 });
+
+exports.connectWithUser = catchAsync(async (req, res) => {
+  const myUid = req.body.uid;
+  const otherUid = req.body.uid2;
+
+  const updateFirst = User.updateOne(
+    { uid: myUid },
+    { $addToSet: { connectedTo: otherUid } }
+  );
+
+  const updateSecond = User.updateOne(
+    { uid: otherUid },
+    { $addToSet: { connectedTo: myUid } }
+  );
+
+  const createChatRoom = roomCollection.insertOne({
+    roomId: combineUserUids(myUid, otherUid),
+    chats: [],
+  });
+  const promises = Promise.all([updateFirst, updateSecond, createChatRoom]);
+
+  const result = await promises;
+
+  if (result) {
+    res.json({
+      ok: true,
+      message: `You have connected with the user`,
+      result: [updateFirst, updateSecond, createChatRoom],
+    });
+    res.status(201).end();
+  } else {
+    res.json({
+      ok: false,
+      message: `Connecting with the user failed.`,
+    });
+    res.status(400).end();
+  }
+  client.close();
+});

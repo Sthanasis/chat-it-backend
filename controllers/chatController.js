@@ -6,7 +6,7 @@ exports.getChat = catchAsync(async (req, res) => {
   const limit = req.query.limit.toString();
 
   const room = await Room.findOne({ roomId });
-  console.log(room);
+
   if (room) {
     res.json({
       ok: true,

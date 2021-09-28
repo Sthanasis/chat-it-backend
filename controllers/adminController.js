@@ -27,6 +27,7 @@ const createSendToken = (user, statusCode, res) => {
     result: {
       token: token,
       ...cookieOptions,
+      user: user,
     },
   });
 };
@@ -69,10 +70,11 @@ exports.isAdmin = async (req, res, next) => {
 
 exports.login = catchAsync(async (req, res, next) => {
   const { to_Decrypt } = encrypt;
+  console.log(req.body);
   const { email, password } = req.body;
 
   if (!email || !password) {
-    res.json({
+    res.status(401).json({
       message: "No email or Password",
     });
     return;
@@ -81,6 +83,7 @@ exports.login = catchAsync(async (req, res, next) => {
   const dbUser = await User.findOne({ email });
 
   if (dbUser && password === to_Decrypt(dbUser.password)) {
+    delete dbUser.password;
     createSendToken(dbUser, 200, res);
   } else {
     res.status(404).json({
