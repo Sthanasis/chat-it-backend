@@ -70,7 +70,7 @@ exports.isAdmin = async (req, res, next) => {
 
 exports.login = catchAsync(async (req, res, next) => {
   const { to_Decrypt } = encrypt;
-  console.log(req.body);
+
   const { email, password } = req.body;
 
   if (!email || !password) {

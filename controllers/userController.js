@@ -1,5 +1,6 @@
 const User = require("../models/User");
 const catchAsync = require("../utils/catchAsync");
+const fs = require("fs/promises");
 
 exports.getUserHandler = catchAsync(async (req, res) => {
   const { uid } = req.params;
@@ -7,6 +8,13 @@ exports.getUserHandler = catchAsync(async (req, res) => {
   const result = await User.findOne({ uid });
 
   if (result) {
+    let imageUrl = "";
+    if (result.gender === "Male") {
+      imageUrl = "/assets/common/male.png";
+    } else {
+      imageUrl = "/assets/common/female.png";
+    }
+    result.images = [imageUrl];
     res.json({ ok: true, message: "User found", result, error: null });
     res.status(200).end();
   } else {
@@ -56,7 +64,6 @@ exports.getAllUsers = catchAsync(async (req, res) => {
 
 exports.getAllActiveUsers = catchAsync(async (req, res) => {
   const params = req.query.uids;
-  console.log(params);
   let uids;
   if (!Array.isArray(params)) {
     uids = [params];

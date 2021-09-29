@@ -1,4 +1,4 @@
-const app = require("express")();
+const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
@@ -11,9 +11,12 @@ const userRouter = require("./api/userRoutes");
 const adminRouter = require("./api/adminRoutes");
 const chatRouter = require("./api/chatRoutes");
 
+const app = express();
+
 app.use(cors());
 app.use(compression());
 app.use(json());
+app.use("/assets", express.static("assets"));
 
 app.use("/api", adminRouter);
 app.use("/api/users", userRouter);
