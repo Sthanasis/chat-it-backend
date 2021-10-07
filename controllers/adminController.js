@@ -44,8 +44,13 @@ exports.signUp = catchAsync(async (req, res) => {
     res.json({ ok: false, message: "User exists", result, error: null });
     res.status(302).end();
   }
-
-  result = await User.insertOne(user);
+  if (user.gender === "male") {
+    user.imageUrl = "/assets/common/male.png";
+  } else {
+    user.imageUrl = "/assets/common/female.png";
+  }
+  console.log(user);
+  result = await User.create(user);
 
   res.json({ ok: true, message: "User inserted", result, error: null });
   res.status(201).end();

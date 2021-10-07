@@ -5,19 +5,19 @@ const mongoose = require("mongoose");
 const compression = require("compression");
 const { json } = require("body-parser");
 
-const io = require("./sockets");
-
-const userRouter = require("./api/userRoutes");
-const adminRouter = require("./api/adminRoutes");
-const chatRouter = require("./api/chatRoutes");
-
 const app = express();
-
+const server = require("http").Server(app);
+const io = require("socket.io")(server);
+//middlewares
 app.use(cors());
 app.use(compression());
 app.use(json());
 app.use("/assets", express.static("assets"));
 
+const userRouter = require("./api/userRoutes");
+const adminRouter = require("./api/adminRoutes");
+const chatRouter = require("./api/chatRoutes");
+//route middlewars
 app.use("/api", adminRouter);
 app.use("/api/users", userRouter);
 app.use("/api/chats", chatRouter);
@@ -27,6 +27,86 @@ dotenv.config({
 });
 
 const port = process.env.PORT || 3000;
+
+//active users array TODO Mongo collection
+let users = [];
+
+const addUSer = (socketId, data) => {
+  !users.some((user) => user.data.uid === data.uid) &&
+    users.push({ socketId, data });
+};
+
+const editUser = (socketId, data) => {
+  users = users.map((user) =>
+    user.data.uid === data.uid ? { socketId, data } : user
+  );
+};
+
+const removeUser = (uid) => {
+  users = users.filter((user) => user.data.uid !== uid);
+};
+
+const getUser = (uid) => {
+  return users.find((user) => user.data.uid === uid);
+};
+
+io.on("connect", (socket) => {
+  socket.on("test", () => {
+    console.log("test");
+  });
+  socket.on("active", (data) => {
+    addUSer(socket.id, data);
+    socket.broadcast.emit("userSignIn", {
+      uid: data.uid,
+      active: true,
+    });
+  });
+  socket.on("reconnect", (user) => {
+    try {
+      addUSer(socket.id, user);
+      editUser(socket.id, user);
+    } catch (err) {
+      console.log(err);
+    }
+  });
+  socket.on("start chat", ({ room, receiverId }) => {
+    try {
+      const receiver = getUser(receiverId);
+      io.to(receiver.socketId).emit("startChat", room);
+    } catch (err) {
+      console.log(err);
+    }
+  });
+  //user sending message
+  socket.on("send-message", (message) => {
+    try {
+      const receiver = getUser(message.receiverUid);
+      io.to(receiver.socketId).emit("chat", message);
+    } catch (err) {
+      console.log(message);
+      console.log("======================\n" + err);
+    }
+  });
+
+  socket.on("isTyping", ({ uid, isTyping }) => {
+    try {
+      const user = getUser(uid);
+      io.to(user.socketId).emit("typing", isTyping);
+    } catch (err) {
+      console.log(err);
+    }
+  });
+
+  //when the user exits the room
+  socket.on("inactive", (uid) => {
+    //the user is deleted from array of users and a left room message displayed
+    removeUser(uid);
+    socket.broadcast.emit("userSignOut", {
+      uid,
+      active: false,
+    });
+  });
+});
 
 process.on("uncaughtException", (err) => {
   console.log(err.name, err.message);
@@ -44,7 +124,7 @@ mongoose
   })
   .catch((err) => console.log(err));
 
-app.listen(port, () => {
+server.listen(port, () => {
   console.log(
     `> Running on http://localhost:${port} with environment ${process.env.NODE_ENV}`
   );

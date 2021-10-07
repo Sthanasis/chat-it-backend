@@ -6,15 +6,19 @@ const userSchema = new mongoose.Schema({
     required: [true, "Please provide a password!"],
     minlength: 4,
   },
-  username: { type: String, required: [true, "Please provide a username!"] },
   firstname: { type: String, required: [true, "Please provide a firstname!"] },
   gender: { type: String, required: [true, "Please provide a gender!"] },
   lastname: { type: String, required: [true, "Please provide a lastname!"] },
-  age: { type: String, required: [true, "Please provide your date of birth!"] },
+  dateOfBirth: {
+    type: String,
+    required: [true, "Please provide your date of birth!"],
+  },
   email: { type: String, required: [true, "Please provide an email!"] },
   uid: { type: String },
   active: { type: Boolean },
   connectedTo: [String],
+  images: [String],
+  imageUrl: { type: String },
 });
 
 const User = mongoose.model("User", userSchema);

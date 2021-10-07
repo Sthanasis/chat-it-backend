@@ -9,6 +9,6 @@ dotenv.config({
 const router = express.Router();
 
 router.post("/login", adminController.login);
-router.post("/signIn", adminController.signUp);
+router.post("/register", adminController.signUp);
 
 module.exports = router;
