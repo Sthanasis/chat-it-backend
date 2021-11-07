@@ -19,6 +19,9 @@ const userSchema = new mongoose.Schema({
   connectedTo: [String],
   images: [String],
   imageUrl: { type: String },
+  location: { type: String },
+  hobbies: [String],
+  about: { type: String },
 });
 
 const User = mongoose.model("User", userSchema);
