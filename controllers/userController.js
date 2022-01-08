@@ -1,5 +1,8 @@
+const Room = require("../models/Room");
 const User = require("../models/User");
 const catchAsync = require("../utils/catchAsync");
+
+const utils = require("../utils/utils");
 
 exports.getUserHandler = catchAsync(async (req, res) => {
   const { uid } = req.params;
@@ -7,7 +10,7 @@ exports.getUserHandler = catchAsync(async (req, res) => {
   const result = await User.findOne({ uid });
 
   if (result) {
-    res.json({ ok: true, message: "User found", result, error: null });
+    res.json({ ok: true, message: "User found", data: result, error: null });
     res.status(200).end();
   } else {
     res.json({ ok: true, message: "User not found", error: null });
@@ -72,24 +75,65 @@ exports.getAllActiveUsers = catchAsync(async (req, res) => {
   res.status(200).end();
 });
 
-exports.connectWithUser = catchAsync(async (req, res) => {
-  const myUid = req.body.uid;
-  const otherUid = req.body.uid2;
+exports.requestConnect = catchAsync(async (req, res) => {
+  const myUid = req.body.senderUid;
+  const otherUid = req.body.receiverUid;
 
-  const updateFirst = User.updateOne(
+  const updateFirst = User.findOneAndUpdate(
     { uid: myUid },
-    { $addToSet: { connectedTo: otherUid } }
+    { $addToSet: { sendRequests: otherUid } },
+    { new: true, projection: { password: 0, _id: 0 } }
   );
 
   const updateSecond = User.updateOne(
     { uid: otherUid },
-    { $addToSet: { connectedTo: myUid } }
+    { $addToSet: { receivedRequests: myUid } }
   );
 
-  const createChatRoom = roomCollection.insertOne({
-    roomId: combineUserUids(myUid, otherUid),
+  const promises = Promise.all([updateFirst, updateSecond]);
+
+  const result = await promises;
+
+  if (result) {
+    res.json({
+      message: "Connection request has been sent.",
+      data: result[0],
+    });
+    res.status(200).end();
+  } else {
+    res.json({
+      message: "Connecting request failed to be sent.",
+    });
+    res.status(400).end();
+  }
+});
+
+exports.connectWithUser = catchAsync(async (req, res) => {
+  const myUid = req.body.senderUid;
+  const otherUid = req.body.receiverUid;
+
+  const updateFirst = User.findOneAndUpdate(
+    { uid: myUid },
+    {
+      $addToSet: { connectedTo: otherUid },
+      $pull: { receivedRequests: otherUid },
+    },
+    { new: true, projection: { password: 0, _id: 0 } }
+  );
+
+  const updateSecond = User.findOneAndUpdate(
+    { uid: otherUid },
+    {
+      $addToSet: { connectedTo: myUid },
+      $pull: { sendRequests: otherUid },
+    }
+  );
+
+  const createChatRoom = Room.create({
+    roomId: utils.combineUserUids(myUid, otherUid),
     chats: [],
   });
+
   const promises = Promise.all([updateFirst, updateSecond, createChatRoom]);
 
   const result = await promises;
@@ -98,15 +142,14 @@ exports.connectWithUser = catchAsync(async (req, res) => {
     res.json({
       ok: true,
       message: `You have connected with the user`,
-      result: [updateFirst, updateSecond, createChatRoom],
+      data: [result[0], result[1]],
     });
-    res.status(201).end();
+    res.status(200).end();
   } else {
     res.json({
       ok: false,
-      message: `Connecting with the user failed.`,
+      message: `Connection with the user failed.`,
     });
     res.status(400).end();
   }
-  client.close();
 });
