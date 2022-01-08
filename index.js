@@ -31,9 +31,8 @@ const port = process.env.PORT || 3000;
 //active users array TODO Mongo collection
 let users = [];
 
-const addUSer = (socketId, data) => {
-  !users.some((user) => user.data.uid === data.uid) &&
-    users.push({ socketId, data });
+const addUser = (socketId, data) => {
+  users.push({ socketId, data });
 };
 
 const editUser = (socketId, data) => {
@@ -51,25 +50,50 @@ const getUser = (uid) => {
 };
 
 io.on("connect", (socket) => {
-  socket.on("test", () => {
-    console.log("test");
-  });
   socket.on("active", (data) => {
-    addUSer(socket.id, data);
+    addUser(socket.id, data);
     socket.broadcast.emit("userSignIn", {
       uid: data.uid,
       active: true,
     });
   });
+
   socket.on("reconnect", (user) => {
     try {
-      addUSer(socket.id, user);
+      addUser(socket.id, user);
       editUser(socket.id, user);
     } catch (err) {
       console.log(err);
     }
   });
-  socket.on("start chat", ({ room, receiverId }) => {
+  socket.on("accept-connect", (user) => {
+    try {
+      const receiver = getUser(user.uid);
+      io.to(receiver.socketId).emit("connection-accepted", user);
+    } catch (err) {
+      console.log(err);
+    }
+  });
+  socket.on("connect-request", ({ requestSender, receiverId }) => {
+    /* 
+      @params 
+      requestSender {
+        fisrtname: string;
+        lastname: string;
+      }
+
+      receiverId: string
+    */
+    try {
+      const receiver = getUser(receiverId);
+      io.to(receiver.socketId).emit("notification", {
+        message: `${requestSender.firstname} ${requestSender.lastname} wants to connect`,
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  });
+  socket.on("start-chat", ({ room, receiverId }) => {
     try {
       const receiver = getUser(receiverId);
       io.to(receiver.socketId).emit("startChat", room);
@@ -81,6 +105,7 @@ io.on("connect", (socket) => {
   socket.on("send-message", (message) => {
     try {
       const receiver = getUser(message.receiverUid);
+      console.log(users);
       io.to(receiver.socketId).emit("chat", message);
     } catch (err) {
       console.log(message);
