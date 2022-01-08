@@ -15,6 +15,9 @@ router.get("/all", userController.getAllUsers);
 router.get("/user/:uid", userController.getUserHandler);
 router.patch("/", userController.updateUserStatus);
 
+router.patch("/connection-request", userController.requestConnect);
+router.patch("/connect", userController.connectWithUser);
+
 router.get("/search", userController.searchUsers);
 router.get("/active", userController.getAllActiveUsers);
 
