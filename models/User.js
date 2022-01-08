@@ -17,6 +17,7 @@ const userSchema = new mongoose.Schema({
   uid: { type: String },
   active: { type: Boolean },
   connectedTo: [String],
+  pendingConnections: [String],
   images: [String],
   imageUrl: { type: String },
   location: { type: String },
