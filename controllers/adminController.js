@@ -49,7 +49,7 @@ exports.signUp = catchAsync(async (req, res) => {
   } else {
     user.imageUrl = "/assets/common/female.png";
   }
-  console.log(user);
+
   result = await User.create(user);
 
   res.json({ ok: true, message: "User inserted", result, error: null });
@@ -57,8 +57,11 @@ exports.signUp = catchAsync(async (req, res) => {
 });
 
 exports.isAdmin = async (req, res, next) => {
-  if (req.query.token) {
-    const token = req.query.token;
+  const bearerHeader = req.headers["authorization"];
+  console.log(bearerHeader);
+  if (bearerHeader) {
+    const bearer = bearerHeader.split(" ");
+    const token = bearer[1];
 
     jwt.verify(token, process.env.JWTSECRET, (err, user) => {
       if (err) {
