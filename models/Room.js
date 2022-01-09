@@ -12,16 +12,10 @@ const roomSchema = new mongoose.Schema({
       date: {
         type: String,
       },
-      receiverUid: {
-        type: String,
-      },
       senderUid: {
         type: String,
       },
-      senderName: {
-        type: String,
-      },
-      receiverName: {
+      receiverUid: {
         type: String,
       },
     },
