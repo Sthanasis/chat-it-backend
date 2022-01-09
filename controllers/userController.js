@@ -57,7 +57,7 @@ exports.getAllUsers = catchAsync(async (req, res) => {
   res.status(200).end();
 });
 
-exports.getAllActiveUsers = catchAsync(async (req, res) => {
+exports.getAllActiveConnections = catchAsync(async (req, res) => {
   const params = req.query.uids;
   let uids;
   if (!Array.isArray(params)) {
