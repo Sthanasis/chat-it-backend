@@ -9,15 +9,12 @@ exports.getChat = catchAsync(async (req, res) => {
 
   if (room) {
     res.json({
-      ok: true,
-      result: room.chats.slice(parseInt(limit), parseInt(limit) + 10).reverse(),
-      error: null,
+      data: room.chats.slice(parseInt(limit), parseInt(limit) + 10),
     });
     res.status(200);
   } else {
     res.json({
-      ok: false,
-      error: `Room with id ${roomId} not found`,
+      message: `Room with id ${roomId} not found`,
     });
     res.status(404);
   }
@@ -41,14 +38,12 @@ exports.postChat = catchAsync(async (req, res) => {
   );
   if (result) {
     res.json({
-      ok: true,
       message: `Message has been added to room ${roomId}`,
-      result: result,
+      data: result,
     });
     res.status(201);
   } else {
     res.json({
-      ok: false,
       message: `Failure on message send.`,
     });
     res.status(400);
