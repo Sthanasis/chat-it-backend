@@ -32,7 +32,8 @@ const port = process.env.PORT || 3000;
 let users = [];
 
 const addUser = (socketId, data) => {
-  users.push({ socketId, data });
+  !users.some((user) => user.data.uid === data.uid) &&
+    users.push({ socketId, data });
 };
 
 const editUser = (socketId, data) => {
@@ -51,7 +52,6 @@ const getUser = (uid) => {
 
 io.on("connect", (socket) => {
   socket.on("active", (data) => {
-    addUser(socket.id, data);
     socket.broadcast.emit("userSignIn", {
       uid: data.uid,
       active: true,
@@ -105,10 +105,9 @@ io.on("connect", (socket) => {
   socket.on("send-message", (message) => {
     try {
       const receiver = getUser(message.receiverUid);
-      console.log(users);
+      console.log(message);
       io.to(receiver.socketId).emit("chat", message);
     } catch (err) {
-      console.log(message);
       console.log("======================\n" + err);
     }
   });
