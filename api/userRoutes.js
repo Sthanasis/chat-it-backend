@@ -19,6 +19,6 @@ router.patch("/connection-request", userController.requestConnect);
 router.patch("/connect", userController.connectWithUser);
 
 router.get("/search", userController.searchUsers);
-router.get("/active", userController.getAllActiveUsers);
+router.get("/activeConnections", userController.getAllActiveConnections);
 
 module.exports = router;
