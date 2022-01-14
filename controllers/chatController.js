@@ -4,12 +4,15 @@ const Room = require("../models/Room");
 exports.getChat = catchAsync(async (req, res) => {
   const roomId = req.query.roomId;
   const limit = req.query.limit.toString();
-
+  console.log(limit)
   const room = await Room.findOne({ roomId });
-
+  const STEP = 20
   if (room) {
     res.json({
-      data: room.chats.slice(parseInt(limit), parseInt(limit) + 20),
+      data: {
+        messages: room.chats.slice(parseInt(limit), parseInt(limit) + STEP),
+        totalCount: room.chats.length,
+      }
     });
     res.status(200);
   } else {
