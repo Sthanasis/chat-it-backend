@@ -9,7 +9,7 @@ exports.getChat = catchAsync(async (req, res) => {
 
   if (room) {
     res.json({
-      data: room.chats.slice(parseInt(limit), parseInt(limit) + 10),
+      data: room.chats.slice(parseInt(limit), parseInt(limit) + 20),
     });
     res.status(200);
   } else {
