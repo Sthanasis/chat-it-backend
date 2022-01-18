@@ -17,10 +17,12 @@ app.use("/assets", express.static("assets"));
 const userRouter = require("./api/userRoutes");
 const adminRouter = require("./api/adminRoutes");
 const chatRouter = require("./api/chatRoutes");
+const testRouter = require("./api/testRoutes");
 //route middlewars
 app.use("/api", adminRouter);
 app.use("/api/users", userRouter);
 app.use("/api/chats", chatRouter);
+app.use("/api/test", testRouter);
 
 dotenv.config({
   path: "./.env",
