@@ -51,25 +51,22 @@ const getUser = (uid) => {
 };
 
 io.on("connect", (socket) => {
-  socket.on("active", (data) => {
+  socket.on("active", ({uid}) => {
     socket.broadcast.emit("userSignIn", {
-      uid: data.uid,
+      uid: uid,
       active: true,
     });
   });
-
+  socket.on('user-status', ({uid, active})=> {
+    socket.broadcast.emit("userStatus", {
+      uid,
+      active
+    })
+  })
   socket.on("reconnect", (user) => {
     try {
       addUser(socket.id, user);
       editUser(socket.id, user);
-    } catch (err) {
-      console.log(err);
-    }
-  });
-  socket.on("accept-connect", (user) => {
-    try {
-      const receiver = getUser(user.uid);
-      io.to(receiver.socketId).emit("connection-accepted", user);
     } catch (err) {
       console.log(err);
     }
@@ -93,6 +90,14 @@ io.on("connect", (socket) => {
       console.log(err);
     }
   });
+  socket.on("accept-connect", (user) => {
+    try {
+      const receiver = getUser(user.uid);
+      io.to(receiver.socketId).emit("connection-accepted", user);
+    } catch (err) {
+      console.log(err);
+    }
+  });
   socket.on("start-chat", ({ room, receiverId }) => {
     try {
       const receiver = getUser(receiverId);
@@ -101,17 +106,6 @@ io.on("connect", (socket) => {
       console.log(err);
     }
   });
-  //user sending message
-  socket.on("send-message", (message) => {
-    try {
-      const receiver = getUser(message.receiverUid);
-      console.log(message);
-      io.to(receiver.socketId).emit("chat", message);
-    } catch (err) {
-      console.log("======================\n" + err);
-    }
-  });
-
   socket.on("isTyping", ({ uid, isTyping }) => {
     try {
       const user = getUser(uid);
@@ -120,9 +114,17 @@ io.on("connect", (socket) => {
       console.log(err);
     }
   });
-
+  //user sending message
+  socket.on("send-message", (message) => {
+    try {
+      const receiver = getUser(message.receiverUid);
+      io.to(receiver.socketId).emit("chat", message);
+    } catch (err) {
+      console.log("======================\n" + err);
+    }
+  });
   //when the user exits the room
-  socket.on("inactive", (uid) => {
+  socket.on("inactive", ({uid}) => {
     //the user is deleted from array of users and a left room message displayed
     removeUser(uid);
     socket.broadcast.emit("userSignOut", {
