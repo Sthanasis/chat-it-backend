@@ -67,9 +67,12 @@ io.on("connect", (socket) => {
     })
   })
   socket.on("reconnect", (user) => {
+
+    console.log(user)
     try {
       addUser(socket.id, user);
       editUser(socket.id, user);
+      console.log(user)
       console.log(users)
     } catch (err) {
       console.log(err);
