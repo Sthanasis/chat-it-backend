@@ -53,7 +53,7 @@ const getUser = (uid) => {
 };
 
 io.on("connect", (socket) => {
-
+  console.log(users)
   socket.on("active", ({uid}) => {
     socket.broadcast.emit("userSignIn", {
       uid: uid,
@@ -67,8 +67,6 @@ io.on("connect", (socket) => {
     })
   })
   socket.on("reconnect", (user) => {
-
-    console.log(user)
     try {
       addUser(socket.id, user);
       editUser(socket.id, user);
