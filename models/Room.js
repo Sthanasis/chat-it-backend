@@ -6,6 +6,10 @@ const roomSchema = new mongoose.Schema({
   },
   chats: [
     {
+      id: {
+        type: String,
+        required: true
+      },
       message: {
         type: String,
       },
